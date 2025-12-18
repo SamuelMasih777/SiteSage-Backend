@@ -1,5 +1,5 @@
 import { SeoRule, RuleResult } from "../types";
-import { CrawlResult } from "../../models/crawler.model";
+import { CrawlResult } from "../../../models/crawler.model";
 
 export const performanceRule: SeoRule = {
   name: "Page Performance",
