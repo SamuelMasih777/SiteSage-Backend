@@ -1,0 +1,98 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sitesage_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sitesage_test
+          JWT_SECRET: test-secret-key
+          GEMINI_API_KEY: test-api-key
+          NODE_ENV: test
+        run: npm test
+        working-directory: backend
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Build TypeScript
+        run: npm run build
+        working-directory: backend
+
+  deploy-notification:
+    name: Render Deployment
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deployment notification
+        run: |
+          echo "════════════════════════════════════════"
+          echo "🎉 CI PASSED SUCCESSFULLY"
+          echo ""
+          echo "🚀 Render is deploying your backend"
+          echo ""
+          echo "🌐 API will be live at:"
+          echo "👉 https://sitesage-backend-hsm4.onrender.com/"
+          echo ""
+          echo "⏱️  Deployment usually takes 3–5 minutes"
+          echo ""
+          echo "📊 Monitor deployment status at:"
+          echo "👉 https://dashboard.render.com"
+          echo "════════════════════════════════════════"

@@ -9,5 +9,11 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "skipLibCheck": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "jest.config.ts",
+    "**/*.test.ts"
+  ]
 }
