@@ -107,3 +107,4 @@ reports/
 # Build output
 build-output.txt
 temp-error.txt
+/src/generated/prisma
